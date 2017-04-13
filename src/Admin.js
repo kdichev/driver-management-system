@@ -19,7 +19,11 @@ import ArrowBack from 'material-ui/svg-icons/navigation/arrow-back';
 import ArrowForward from 'material-ui/svg-icons/navigation/arrow-forward';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import Navigation from 'material-ui/svg-icons/maps/navigation';
-
+import ContentAdd from 'material-ui/svg-icons/content/add';
+import TextField from 'material-ui/TextField';
+import Paper from 'material-ui/Paper'
+import Dialog from 'material-ui/Dialog'
+import _ from 'lodash'
 const routes = [
   {
     title: "Route #1",
@@ -52,12 +56,15 @@ const routes = [
     preview: "https://www.google.com/maps/embed?pb=!1m26!1m12!1m3!1d71848.00477511012!2d12.354552572069709!3d55.754156642141616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m11!3e0!4m3!3m2!1d55.700845799999996!2d12.4585768!4m5!1s0x465245a38412d0d7%3A0x95e086fe5506d3f!2sFarum+St.%2C+3520+Farum!3m2!1d55.8121009!2d12.373448699999999!5e0!3m2!1sen!2sdk!4v1492103155309"
   }
 ]
-class Dashboard extends Component {
+class Admin extends Component {
   constructor(props) {
   super(props);
     this.state = {
-      isAuthenticated: localStorage.getItem("isAuth"),
-      open: false
+      isSuperUser: localStorage.getItem("isSuperUser"),
+      routes: [],
+      start: '',
+      end: '',
+      dialogOpen: false
     };
   }
 
@@ -67,7 +74,7 @@ class Dashboard extends Component {
 
   isAuth = () => {
     console.log(this.state.isAuthenticated);
-    if (this.state.isAuthenticated) {
+    if (this.state.isSuperUser) {
       // "do Stuff"
     } else {
       console.log(this.props);
@@ -79,22 +86,47 @@ class Dashboard extends Component {
     return props.history.push(route);
   }
 
-  onClick = (item) => {
-    console.log(item);
-    //window.location.href = link
-    //opens native app
-    //window.location = 'geo:40.765819,-73.975866'
-    // opens in browser maps
-    var url = item.url;
-    window.open(url, '_blank', 'location=yes');
+  handleStartChange = (event) => {
+     this.setState({
+       start: event.target.value,
+     });
+   };
+   handleEndChange = (event) => {
+      this.setState({
+        end: event.target.value,
+      });
+    };
+
+  onClick = () => {
+    this.state.routes.push({
+      start: this.state.state,
+      end: this.state.end
+    })
+    this.setState(routes);
+    this.setState({
+      start: '',
+      end: '',
+      dialogOpen: false
+    });
+  }
+
+  addRoutes = () => {
+    this.setState({
+      dialogOpen: true
+    })
+  }
+
+  componentWillUnmount() {
+    localStorage.setItem("data", this.state.routes);
   }
 
   render() {
+    console.log(this.state.routes);
     return (
       <MuiThemeProvider>
         <div className="">
           <AppBar
-            title={"Dashboard " + moment().format("DD/MM/YYYY")}
+            title={"Admin " + moment().format("DD/MM/YYYY")}
             iconClassNameRight="muidocs-icon-navigation-expand-more"
             style={{backgroundColor: "#2196F3"}}
             onLeftIconButtonTouchTap={() => this.setState({open:true}) }
@@ -116,128 +148,74 @@ class Dashboard extends Component {
             <MenuItem onTouchTap={this.handleClose}>Settings</MenuItem>
             <MenuItem onTouchTap={() => {localStorage.clear(); this.props.history.goBack()}}>Logout</MenuItem>
           </Drawer>
-          {/* <Subheader style={{backgroundColor:"#F5F5F5"}}>Nested List Items</Subheader>
-          <Divider /> */}
-          <List style={{padding: 0}}>
-          <Subheader style={{backgroundColor:"#F5F5F5"}}>Current routes</Subheader>
-          <Divider />
-          {routes.map((item)=>
-            <div>
+          {_.isEmpty(this.state.routes)  &&
+            <div className="flexbox-container-admin">
+              <h2>Add new routes</h2>
+              <TextField
+                value={this.state.start}
+                onChange={this.handleStartChange}
+                hintText="eg. John Doe"
+                floatingLabelText="Floating Label Text"
+              /><br />
+              <TextField
+                value={this.state.end}
+                onChange={this.handleEndChange}
+                floatingLabelText="Password"
+              /><br />
+              <RaisedButton label="Save" backgroundColor="#2196F3" labelColor="#ffffff" onClick={this.onClick}/>
+            </div>
+          }
+          {!_.isEmpty(this.state.routes) &&
+            this.state.routes.map(() =>
               <Card>
-                <CardHeader className="header"
-                  title={
-                      <div style={{height: "20px"}}>
-                        <div style={{float: "left"}}>{item.title}</div>
-                        <div style={{float: "right", color: "#5a9d00"}}>{item.duration}</div>
-                      </div>
-                  }
-                  subtitle={
-                    <div style={{height: "20px"}}>
-                      <div>
-                        <div style={{float: "left"}}>{item.body}</div>
-                        <div style={{float: "right"}}>Arrive Arround {item.dueDate}</div>
-                        <br />
-                        <div style={{float: "right"}}>{item.distance}</div>
-                      </div>
-                    </div>
-                  }
-                  style={{width: "100%"}}
+                <CardHeader
+                  title="Without Avatar"
+                  subtitle="Subtitle"
                   actAsExpander={true}
+                  showExpandableButton={true}
                 />
-                <CardActions actAsExpander={true}>
-                  <FlatButton label="details" labelStyle={{color: "#2196F3", padding: 0}} style={{minWidth: 72}}/>
+                <CardActions>
+                  <FlatButton label="Action1" />
+                  <FlatButton label="Action2" />
                 </CardActions>
                 <CardText expandable={true}>
-                    <iframe src={item.preview}
-                      width="100%"
-                      height="250"
-                      frameBorder="0"
-                      style={{border:0}}
-                      allowFullScreen
-                    />
-                    <ListItem primaryText={
-                        <div>
-                          <ArrowUpward />
-                          Turn left to stay on Slotsherrens Vænge
-                        </div>
-                      }
-                    />
-                    <ListItem primaryText={
-                        <div>
-                          <ArrowBack />
-                          Turn left to stay on Slotsherrens Vænge
-                        </div>
-                      }
-                    />
-                    <ListItem primaryText={
-                        <div>
-                          <ArrowForward />
-                          Turn left to stay on Slotsherrens Vænge
-                        </div>
-                      }
-                    />
-                    {/* <RaisedButton label="Start" backgroundColor="#2196F3" labelColor="#ffffff" /> */}
-                    <div style={{textAlign: "right"}}>
-                      <FloatingActionButton onClick={() => this.onClick(item)} backgroundColor="#2196F3" labelColor="#ffffff">
-                       <Navigation />
-                     </FloatingActionButton>
-                   </div>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
+                  Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
+                  Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
                 </CardText>
               </Card>
-              {/* <ListItem
-                key={item.title}
-                primaryText={
-                    <div style={{height: "25px"}}>
-                      <div style={{float: "left"}}>{item.title}</div>
-                      <div style={{float: "right", color: "#5a9d00"}}>{item.duration}</div>
-                    </div>
-                }
-                secondaryText={
-                  <div style={{height: "55px"}}>
-                    <div>
-                      <div style={{float: "left"}}>{item.body}</div>
-                      <div style={{float: "right"}}>{item.distance}</div>
-                    </div>
-                    <br />
-                    <br />
-                    <a style={{color: "#2196F3"}}>DETAILS</a>
-                  </div>
-                }
-                onClick={() => this.onClick(item)}
-              />
-              <Divider /> */}
-            </div>
-          )}
-          </List>
-          <Divider />
-          <List>
-          <Subheader style={{backgroundColor:"#F5F5F5"}}>Upcoming routes</Subheader>
-          <Divider />
-          {[1,2,3,4].map((item)=>
-            <ListItem
-              key={item}
-              primaryText={"Route #" + item + " 5"+ item + "km"}
-              secondaryText="Roskilde, Tasstrup, Kobehnavn"
-              onClick={() => this.onClick(item)}
-            />
-          )}
-          </List>
-          <List>
-          <Subheader style={{backgroundColor:"#F5F5F5"}}>Previous routes</Subheader>
-          <Divider />
-          {[1,2,3,4].map((item)=>
-            <ListItem
-              key={item}
-              primaryText={"Route #" + item + " 5"+ item + "km"}
-              secondaryText="Roskilde, Tasstrup, Kobehnavn"
-              onClick={() => this.onClick(item)}
-            />
-          )}
-          </List>
+            )
+          }
+          {!_.isEmpty(this.state.routes) &&
+          <FloatingActionButton style={{position: "absolute", bottom: 25, right: 25}} onClick={this.addRoutes}>
+            <ContentAdd />
+          </FloatingActionButton>
+          }
+          <Dialog
+            title="Dialog With Actions"
+            modal={false}
+            open={this.state.dialogOpen}
+            onRequestClose={this.handleClose}
+          >
+              <h2>Add new routes</h2>
+              <TextField
+                value={this.state.start}
+                onChange={this.handleStartChange}
+                hintText="eg. John Doe"
+                floatingLabelText="Floating Label Text"
+              /><br />
+              <TextField
+                value={this.state.end}
+                onChange={this.handleEndChange}
+                floatingLabelText="Password"
+              /><br />
+              <RaisedButton label="Save" backgroundColor="#2196F3" labelColor="#ffffff" onClick={this.onClick}/>
+          </Dialog>
         </div>
       </MuiThemeProvider>
     );
   }
 }
 
-export default Dashboard;
+export default Admin;
