@@ -61,7 +61,7 @@ class Admin extends Component {
   super(props);
     this.state = {
       isSuperUser: localStorage.getItem("isSuperUser"),
-      routes: [],
+      routes: JSON.parse(localStorage.getItem("data")) || [],
       start: '',
       end: '',
       dialogOpen: false
@@ -99,9 +99,10 @@ class Admin extends Component {
 
   onClick = () => {
     this.state.routes.push({
-      start: this.state.state,
+      start: this.state.start,
       end: this.state.end
-    })
+    });
+    localStorage.setItem("data", JSON.stringify(this.state.routes));
     this.setState(routes);
     this.setState({
       start: '',
@@ -114,10 +115,6 @@ class Admin extends Component {
     this.setState({
       dialogOpen: true
     })
-  }
-
-  componentWillUnmount() {
-    localStorage.setItem("data", this.state.routes);
   }
 
   render() {
